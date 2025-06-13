@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manajemen Data Kesehatan</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+  body {
+    background-color: #f8f9fa;
+    font-family: 'Poppins', sans-serif;
+  }
+  .table-container {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  .nav-tabs .nav-link.active {
+    font-weight: bold;
+  }
+  .judul-utama {
+    font-size: 2.5rem;
+    font-weight: 700; /* hanya judul utama yang bold */
+    color: #0d6efd;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    animation: fadeInDown 1s ease-in-out;
+  }
+  .judul-utama i {
+    font-size: 2.5rem;
+  }
+  .table thead th,
+  .table thead td {
+    font-weight: 400 !important; /* header tabel tidak bold */
+  }
+  .table td {
+    font-weight: 400; /* isi tabel tidak bold */
+  }
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  </style>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="container py-5">
+    <h2 class="judul-utama"><i class="fas fa-user-md"></i> Manajemen Data Kesehatan</h2>
+
+    <ul class="nav nav-tabs mb-3" id="tabMenu" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="rawat-tab" data-bs-toggle="tab" data-bs-target="#rawat" type="button">Rawat Jalan</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tindakan-tab" data-bs-toggle="tab" data-bs-target="#tindakan" type="button">Tindakan Jalan</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="diagnosa-tab" data-bs-toggle="tab" data-bs-target="#diagnosa" type="button">Diagnosa Jalan</button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="tabContent">
+      <div class="tab-pane fade show active" id="rawat" role="tabpanel">
+        <div class="table-container mb-4">
+          <div class="d-flex justify-content-between mb-3">
+            <h5 class="mb-0">Data Rawat Jalan</h5>
+            <button class="btn btn-success btn-sm" id="btnTambahRawat">+ Tambah Data</button>
+          </div>
+          <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>Tanggal</th>
+                <th>Keluhan</th>
+                <th>Catatan Dokter</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="rawat-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="tindakan" role="tabpanel">
+        <div class="table-container mb-4">
+          <div class="d-flex justify-content-between mb-3">
+            <h5 class="mb-0">Data Tindakan Jalan</h5>
+            <button class="btn btn-success btn-sm" id="btnTambahTindakan">+ Tambah Data</button>
+          </div>
+          <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>Kode ICD10</th>
+                <th>Nama Tindakan</th>
+                <th>Tanggal Tindakan</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tindakan-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="diagnosa" role="tabpanel">
+        <div class="table-container mb-4">
+          <div class="d-flex justify-content-between mb-3">
+            <h5 class="mb-0">Data Diagnosa Jalan</h5>
+            <button class="btn btn-success btn-sm" id="btnTambahDiagnosa">+ Tambah Data</button>
+          </div>
+          <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>Nama Diagnosa</th>
+                <th>Kode ICD10</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="diagnosa-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Form -->
+<div class="modal fade" id="formModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Form Rawat Jalan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="rawatForm">
+          <input type="hidden" id="form-id">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Tanggal Kunjungan</label>
+              <input type="date" class="form-control" id="tanggal_kunjungan" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Keluhan</label>
+              <input type="text" class="form-control" id="keluhan" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Catatan Dokter</label>
+              <input type="text" class="form-control" id="catatan_dokter">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="status" required>
+                <option value="">Pilih...</option>
+                <option value="Menunggu">Menunggu</option>
+                <option value="Selesai">Selesai</option>
+                <option value="Dirujuk">Dirujuk</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-4 text-end">
+            <button type="submit" class="btn btn-primary">Simpan Data</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Form Tindakan Jalan -->
+<div class="modal fade" id="formTindakanModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Form Tindakan Jalan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="tindakanForm">
+          <input type="hidden" id="form-tindakan-id">
+          <div class="mb-3">
+            <label class="form-label">Kode ICD10</label>
+            <input type="text" class="form-control" id="kode_icd10" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Nama Tindakan</label>
+            <input type="text" class="form-control" id="nama_tindakan" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tanggal Tindakan</label>
+            <input type="date" class="form-control" id="tanggal_tindakan" required>
+          </div>
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary">Simpan</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Form Diagnosa Jalan -->
+<div class="modal fade" id="formDiagnosaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Form Diagnosa Jalan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="diagnosaForm">
+          <input type="hidden" id="form-diagnosa-id">
+          <div class="mb-3">
+            <label class="form-label">Nama Diagnosa</label>
+            <input type="text" class="form-control" id="nama_diagnosa" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Kode ICD10</label>
+            <input type="text" class="form-control" id="kode_icd10_diagnosa" required>
+          </div>
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary">Simpan</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const formModal = new bootstrap.Modal(document.getElementById('formModal'));
+    const tindakanModal = new bootstrap.Modal(document.getElementById('formTindakanModal'));
+    const diagnosaModal = new bootstrap.Modal(document.getElementById('formDiagnosaModal'));
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("tindakan-tab").addEventListener("click", loadTindakanJalan);
+      document.getElementById("diagnosa-tab").addEventListener("click", loadDiagnosaJalan);
+      loadRawatJalan();
+    });
+
+    document.getElementById("btnTambahRawat").onclick = function() {
+      document.getElementById("rawatForm").reset();
+      document.getElementById("form-id").value = "";
+      formModal.show();
+    };
+
+    document.getElementById("btnTambahTindakan").onclick = function() {
+      document.getElementById("tindakanForm").reset();
+      document.getElementById("form-tindakan-id").value = "";
+      tindakanModal.show();
+    };
+
+    document.getElementById("btnTambahDiagnosa").onclick = function() {
+      document.getElementById("diagnosaForm").reset();
+      document.getElementById("form-diagnosa-id").value = "";
+      diagnosaModal.show();
+    };
+
+    async function loadRawatJalan() {
+      const response = await fetch("/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `query {
+            getRawatJalan {
+              id_rawat_jalan
+              tanggal_kunjungan
+              keluhan
+              catatan_dokter
+              status
+            }
+          }`
+        })
+      });
+      const result = await response.json();
+      const data = result.data.getRawatJalan || [];
+      const tbody = document.getElementById("rawat-body");
+      tbody.innerHTML = "";
+      data.forEach(item => {
+        const tanggalFormatted = new Date(item.tanggal_kunjungan).toISOString().split("T")[0];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.id_rawat_jalan}</td>
+          <td>${tanggalFormatted}</td>
+          <td>${item.keluhan}</td>
+          <td>${item.catatan_dokter}</td>
+          <td>${item.status}</td>
+          <td>
+            <button class='btn btn-warning btn-sm' onclick='editData(${JSON.stringify(item)})'>Edit</button>
+            <button class='btn btn-danger btn-sm' onclick='hapusData(${item.id_rawat_jalan})'>Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadTindakanJalan() {
+      const response = await fetch("/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `query { getTindakanJalan { id_tindakan_jalan kode_icd10 nama_tindakan tanggal_tindakan } }`
+        })
+      });
+      const result = await response.json();
+      const data = result.data.getTindakanJalan || [];
+      const tbody = document.getElementById("tindakan-body");
+      tbody.innerHTML = "";
+      data.forEach(item => {
+        const tanggal = new Date(item.tanggal_tindakan).toISOString().split("T")[0];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.id_tindakan_jalan}</td>
+          <td>${item.kode_icd10}</td>
+          <td>${item.nama_tindakan}</td>
+          <td>${tanggal}</td>
+          <td>
+            <button class='btn btn-warning btn-sm' onclick='editTindakan(${JSON.stringify(item)})'>Edit</button>
+            <button class='btn btn-danger btn-sm' onclick='hapusTindakan(${item.id_tindakan_jalan})'>Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadDiagnosaJalan() {
+      const response = await fetch("/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `query { getDiagnosaJalan { id_diagnosa_jalan nama_diagnosa kode_icd10 } }`
+        })
+      });
+      const result = await response.json();
+      const data = result.data.getDiagnosaJalan || [];
+      const tbody = document.getElementById("diagnosa-body");
+      tbody.innerHTML = "";
+      data.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.id_diagnosa_jalan}</td>
+          <td>${item.nama_diagnosa}</td>
+          <td>${item.kode_icd10}</td>
+          <td>
+            <button class='btn btn-warning btn-sm' onclick='editDiagnosa(${JSON.stringify(item)})'>Edit</button>
+            <button class='btn btn-danger btn-sm' onclick='hapusDiagnosa(${item.id_diagnosa_jalan})'>Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Hapus data
+    async function hapusData(id) {
+      if (!confirm("Yakin ingin menghapus data ini?")) return;
+      await fetch("/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `mutation { hapusRawatJalan(id_rawat_jalan: ${id}) }`
+        })
+      });
+      loadRawatJalan();
+    }
+
+    // Edit data
+    function editData(item) {
+      document.getElementById("form-id").value = item.id_rawat_jalan;
+      document.getElementById("tanggal_kunjungan").value = item.tanggal_kunjungan;
+      document.getElementById("keluhan").value = item.keluhan;
+      document.getElementById("catatan_dokter").value = item.catatan_dokter;
+      document.getElementById("status").value = item.status;
+      formModal.show();
+    }
+
+    // Submit form (tambah/edit)
+    document.getElementById("rawatForm").onsubmit = async function(e) {
+      e.preventDefault();
+      const id = document.getElementById("form-id").value;
+      const tanggal_kunjungan = document.getElementById("tanggal_kunjungan").value;
+      const keluhan = document.getElementById("keluhan").value;
+      const catatan_dokter = document.getElementById("catatan_dokter").value;
+      const status = document.getElementById("status").value;
+
+      let query;
+      if (id) {
+        query = `mutation {
+          updateRawatJalan(
+            id_rawat_jalan: ${id},
+            tanggal_kunjungan: "${tanggal_kunjungan}",
+            keluhan: "${keluhan}",
+            catatan_dokter: "${catatan_dokter}",
+            status: "${status}"
+          ) { id_rawat_jalan }
+        }`;
+      } else {
+        query = `mutation {
+          tambahRawatJalan(
+            tanggal_kunjungan: "${tanggal_kunjungan}",
+            keluhan: "${keluhan}",
+            catatan_dokter: "${catatan_dokter}",
+            status: "${status}"
+          ) { id_rawat_jalan }
+        }`;
+      }
+
+      await fetch("/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+      });
+
+      formModal.hide();
+      loadRawatJalan();
+    };
+
+    // TINDAKAN JALAN
+    document.querySelector("#tindakan .btn-success").onclick = function() {
+      document.getElementById("tindakanForm").reset();
+      document.getElementById("form-tindakan-id").value = "";
+      tindakanModal.show();
+    };
+
+    async function hapusTindakan(id) {
+      if (!confirm("Yakin ingin menghapus data ini?")) return;
+      await fetch("/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `mutation { hapusTindakanJalan(id_tindakan_jalan: ${id}) }`
+        })
+      });
+      loadTindakanJalan();
+    }
+
+    function editTindakan(item) {
+      document.getElementById("form-tindakan-id").value = item.id_tindakan_jalan;
+      document.getElementById("kode_icd10").value = item.kode_icd10;
+      document.getElementById("nama_tindakan").value = item.nama_tindakan;
+      document.getElementById("tanggal_tindakan").value = item.tanggal_tindakan;
+      tindakanModal.show();
+    }
+
+    document.getElementById("tindakanForm").onsubmit = async function(e) {
+      e.preventDefault();
+      const id = document.getElementById("form-tindakan-id").value;
+      const kode_icd10 = document.getElementById("kode_icd10").value;
+      const nama_tindakan = document.getElementById("nama_tindakan").value;
+      const tanggal_tindakan = document.getElementById("tanggal_tindakan").value;
+      let query;
+      if (id) {
+        query = `mutation {
+          updateTindakanJalan(
+            id_tindakan_jalan: ${id},
+            kode_icd10: "${kode_icd10}",
+            nama_tindakan: "${nama_tindakan}",
+            tanggal_tindakan: "${tanggal_tindakan}"
+          ) { id_tindakan_jalan }
+        }`;
+      } else {
+        query = `mutation {
+          tambahTindakanJalan(
+            kode_icd10: "${kode_icd10}",
+            nama_tindakan: "${nama_tindakan}",
+            tanggal_tindakan: "${tanggal_tindakan}"
+          ) { id_tindakan_jalan }
+        }`;
+      }
+      await fetch("/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+      });
+      tindakanModal.hide();
+      loadTindakanJalan();
+    };
+
+    // DIAGNOSA JALAN
+    document.querySelector("#diagnosa .btn-success").onclick = function() {
+      document.getElementById("diagnosaForm").reset();
+      document.getElementById("form-diagnosa-id").value = "";
+      diagnosaModal.show();
+    };
+
+    async function hapusDiagnosa(id) {
+      if (!confirm("Yakin ingin menghapus data ini?")) return;
+      await fetch("/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `mutation { hapusDiagnosaJalan(id_diagnosa_jalan: ${id}) }`
+        })
+      });
+      loadDiagnosaJalan();
+    }
+
+    function editDiagnosa(item) {
+      document.getElementById("form-diagnosa-id").value = item.id_diagnosa_jalan;
+      document.getElementById("nama_diagnosa").value = item.nama_diagnosa;
+      document.getElementById("kode_icd10_diagnosa").value = item.kode_icd10;
+      diagnosaModal.show();
+    }
+
+    document.getElementById("diagnosaForm").onsubmit = async function(e) {
+      e.preventDefault();
+      const id = document.getElementById("form-diagnosa-id").value;
+      const nama_diagnosa = document.getElementById("nama_diagnosa").value;
+      const kode_icd10 = document.getElementById("kode_icd10_diagnosa").value;
+      let query;
+      if (id) {
+        query = `mutation {
+          updateDiagnosaJalan(
+            id_diagnosa_jalan: ${id},
+            nama_diagnosa: "${nama_diagnosa}",
+            kode_icd10: "${kode_icd10}"
+          ) { id_diagnosa_jalan }
+        }`;
+      } else {
+        query = `mutation {
+          tambahDiagnosaJalan(
+            nama_diagnosa: "${nama_diagnosa}",
+            kode_icd10: "${kode_icd10}"
+          ) { id_diagnosa_jalan }
+        }`;
+      }
+      await fetch("/graphql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+      });
+      diagnosaModal.hide();
+      loadDiagnosaJalan();
+    };
+  </script>
+</body>
+</html>
+<!-- This is the end of the HTML file. -->
