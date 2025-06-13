@@ -104,6 +104,10 @@ async function startServer() {
   // ⚠️ Taruh ini setelah semua route API
   app.use(express.static(path.join(__dirname, "../frontend")));
 
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+  });
+
   const PORT = 8004;
   app.listen(PORT, () => {
     console.log(`🚀 GraphQL: http://localhost:${PORT}${server.graphqlPath}`);
