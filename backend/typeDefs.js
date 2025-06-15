@@ -3,10 +3,12 @@ const { gql } = require("apollo-server-express");
 const typeDefs = gql`
   type RawatJalan {
     id_rawat_jalan: ID!
+    id_kunjungan: Int!
     tanggal_kunjungan: String!
     keluhan: String
     catatan_dokter: String
     status: String
+    diagnosa: DiagnosaJalan
   }
 
   type TindakanJalan {
@@ -18,6 +20,7 @@ const typeDefs = gql`
 
   type DiagnosaJalan {
     id_diagnosa_jalan: ID!
+    id_rawat_jalan: Int!
     nama_diagnosa: String!
     kode_icd10: String!
   }
@@ -26,6 +29,7 @@ const typeDefs = gql`
     getRawatJalan: [RawatJalan]
     getTindakanJalan: [TindakanJalan]
     getDiagnosaJalan: [DiagnosaJalan]
+    rawatJalanByKunjungan(id_kunjungan: Int!): RawatJalan
   }
 
   type Mutation {
@@ -34,6 +38,7 @@ const typeDefs = gql`
       keluhan: String
       catatan_dokter: String
       status: String
+      id_kunjungan: Int!
     ): RawatJalan
 
     updateRawatJalan(
@@ -64,6 +69,7 @@ const typeDefs = gql`
     tambahDiagnosaJalan(
       nama_diagnosa: String!
       kode_icd10: String!
+      id_rawat_jalan: Int!
     ): DiagnosaJalan
 
     updateDiagnosaJalan(

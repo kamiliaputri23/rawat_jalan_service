@@ -1,4 +1,5 @@
 const db = require("./db");
+const pool = require('./db');
 
 const resolvers = {
   Query: {
@@ -29,13 +30,43 @@ const resolvers = {
       const result = await db.query("SELECT * FROM diagnosa_jalan");
       return result.rows;
     },
+    rawatJalanByKunjungan: async (_, { id_kunjungan }) => {
+      const client = await pool.connect();
+
+      try {
+        // Ambil data rawat_jalan berdasarkan id_kunjungan
+        const rawatJalanResult = await client.query(
+          'SELECT * FROM rawat_jalan WHERE id_kunjungan = $1 LIMIT 1',
+          [id_kunjungan]
+        );
+
+        const rawatJalan = rawatJalanResult.rows[0];
+        if (!rawatJalan) return null;
+
+        // Ambil diagnosa_jalan berdasarkan id_rawat_jalan
+       const diagnosaResult = await client.query(
+          'SELECT * FROM diagnosa_jalan WHERE id_rawat_jalan = $1 LIMIT 1',
+          [rawatJalan.id_rawat_jalan]
+        );
+
+        const diagnosa = diagnosaResult.rows[0] || null;
+
+        return {
+          ...rawatJalan,
+          diagnosa,
+        };
+      } finally {
+        client.release();
+      }
+    }
+
   },
   Mutation: {
-    tambahRawatJalan: async (_, { tanggal_kunjungan, keluhan, catatan_dokter, status }) => {
+    tambahRawatJalan: async (_, { tanggal_kunjungan, keluhan, catatan_dokter, status, id_kunjungan }) => {
       const result = await db.query(
-        `INSERT INTO rawat_jalan (tanggal_kunjungan, keluhan, catatan_dokter, status)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [tanggal_kunjungan, keluhan, catatan_dokter, status]
+        `INSERT INTO rawat_jalan (tanggal_kunjungan, keluhan, catatan_dokter, status, id_kunjungan)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [tanggal_kunjungan, keluhan, catatan_dokter, status, id_kunjungan]
       );
       return result.rows[0];
     },
@@ -73,11 +104,11 @@ const resolvers = {
       return true;
     },
 
-    tambahDiagnosaJalan: async (_, { nama_diagnosa, kode_icd10 }) => {
+    tambahDiagnosaJalan: async (_, { nama_diagnosa, kode_icd10, id_rawat_jalan }) => {
       const result = await db.query(
-        `INSERT INTO diagnosa_jalan (nama_diagnosa, kode_icd10)
-         VALUES ($1, $2) RETURNING *`,
-        [nama_diagnosa, kode_icd10]
+        `INSERT INTO diagnosa_jalan (nama_diagnosa, kode_icd10, id_rawat_jalan)
+         VALUES ($1, $2, $3) RETURNING *`,
+        [nama_diagnosa, kode_icd10, id_rawat_jalan]
       );
       return result.rows[0];
     },
